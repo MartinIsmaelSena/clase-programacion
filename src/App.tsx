@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { type ScreenId, SCREENS } from './types'
+import { type ScreenId, type AppViewMode, SCREENS } from './types'
 import { sound } from './utils/sound'
 import { Header } from './components/Header'
 import { FooterNav } from './components/FooterNav'
@@ -11,11 +11,16 @@ import { PrecisionConceptScreen } from './components/screens/PrecisionConceptScr
 import { PaperFirstScreen } from './components/screens/PaperFirstScreen'
 import { ChallengeOrderScreen } from './components/screens/ChallengeOrderScreen'
 import { ChallengeDebugScreen } from './components/screens/ChallengeDebugScreen'
-import { ChallengeBuildScreen } from './components/screens/ChallengeBuildScreen'
+import { ChallengeAccessScreen } from './components/screens/ChallengeAccessScreen'
+import { ChallengeSecurityScreen } from './components/screens/ChallengeSecurityScreen'
 import { CodeBridgeScreen } from './components/screens/CodeBridgeScreen'
 import { SummaryScreen } from './components/screens/SummaryScreen'
+import { StudentLiveView } from './components/live/StudentLiveView'
+import { TeacherLiveView } from './components/live/TeacherLiveView'
 
 export const App: React.FC = () => {
+  const [viewMode, setViewMode] = useState<AppViewMode>('LESSON')
+
   const [currentScreen, setCurrentScreen] = useState<ScreenId>(() => {
     const saved = localStorage.getItem('code_current_screen')
     return (saved as ScreenId) || 'HERO'
@@ -69,11 +74,10 @@ export const App: React.FC = () => {
     setCurrentScreen('CYCLE_DIAGRAM')
   }
 
-  // Keyboard navigation for presentation clicker / teacher keys
+  // Keyboard navigation for presentation clicker / keys
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't intercept if user is typing in an input/textarea
-      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) {
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement)?.tagName)) {
         return
       }
 
@@ -118,86 +122,114 @@ export const App: React.FC = () => {
       {/* Header bar */}
       <Header
         currentScreen={currentScreen}
-        onSelectScreen={(id) => setCurrentScreen(id)}
+        onSelectScreen={(id) => {
+          setViewMode('LESSON')
+          setCurrentScreen(id)
+        }}
         score={score}
         soundEnabled={soundEnabled}
         onToggleSound={handleToggleSound}
+        viewMode={viewMode}
+        onSelectViewMode={(mode) => setViewMode(mode)}
       />
 
       {/* Main Screen Container */}
-      <main className="flex-1 flex flex-col items-center justify-center relative z-10 w-full px-2 py-4 sm:py-6">
-        {currentScreen === 'HERO' && (
-          <HeroScreen onStart={() => setCurrentScreen('INTRO_QUESTIONS')} />
+      <main className="flex-1 flex flex-col items-center justify-center relative z-10 w-full px-2 py-3 sm:py-5">
+        {/* Live Challenge Views */}
+        {viewMode === 'LIVE_STUDENT' && (
+          <StudentLiveView onBackToLesson={() => setViewMode('LESSON')} />
         )}
 
-        {currentScreen === 'INTRO_QUESTIONS' && (
-          <IntroQuestionsScreen onComplete={() => setCurrentScreen('CYCLE_DIAGRAM')} />
+        {viewMode === 'LIVE_TEACHER' && (
+          <TeacherLiveView onBackToLesson={() => setViewMode('LESSON')} />
         )}
 
-        {currentScreen === 'CYCLE_DIAGRAM' && (
-          <CycleDiagramScreen onComplete={() => setCurrentScreen('ALGORITHM_THEORY')} />
-        )}
+        {/* Lesson Experience Screens */}
+        {viewMode === 'LESSON' && (
+          <>
+            {currentScreen === 'HERO' && (
+              <HeroScreen onStart={() => setCurrentScreen('INTRO_QUESTIONS')} />
+            )}
 
-        {currentScreen === 'ALGORITHM_THEORY' && (
-          <AlgorithmTheoryScreen
-            onAddScore={handleAddScore}
-            onComplete={() => setCurrentScreen('PRECISION_CONCEPT')}
-          />
-        )}
+            {currentScreen === 'INTRO_QUESTIONS' && (
+              <IntroQuestionsScreen onComplete={() => setCurrentScreen('CYCLE_DIAGRAM')} />
+            )}
 
-        {currentScreen === 'PRECISION_CONCEPT' && (
-          <PrecisionConceptScreen
-            onAddScore={handleAddScore}
-            onComplete={() => setCurrentScreen('PAPER_FIRST')}
-          />
-        )}
+            {currentScreen === 'CYCLE_DIAGRAM' && (
+              <CycleDiagramScreen onComplete={() => setCurrentScreen('ALGORITHM_THEORY')} />
+            )}
 
-        {currentScreen === 'PAPER_FIRST' && (
-          <PaperFirstScreen onComplete={() => setCurrentScreen('CHALLENGE_ORDER')} />
-        )}
+            {currentScreen === 'ALGORITHM_THEORY' && (
+              <AlgorithmTheoryScreen
+                onAddScore={handleAddScore}
+                onComplete={() => setCurrentScreen('PRECISION_CONCEPT')}
+              />
+            )}
 
-        {currentScreen === 'CHALLENGE_ORDER' && (
-          <ChallengeOrderScreen
-            onAddScore={handleAddScore}
-            onComplete={() => setCurrentScreen('CHALLENGE_DEBUG')}
-          />
-        )}
+            {currentScreen === 'PRECISION_CONCEPT' && (
+              <PrecisionConceptScreen
+                onAddScore={handleAddScore}
+                onComplete={() => setCurrentScreen('PAPER_FIRST')}
+              />
+            )}
 
-        {currentScreen === 'CHALLENGE_DEBUG' && (
-          <ChallengeDebugScreen
-            onAddScore={handleAddScore}
-            onComplete={() => setCurrentScreen('CHALLENGE_BUILD')}
-          />
-        )}
+            {currentScreen === 'PAPER_FIRST' && (
+              <PaperFirstScreen onComplete={() => setCurrentScreen('CHALLENGE_ORDER')} />
+            )}
 
-        {currentScreen === 'CHALLENGE_BUILD' && (
-          <ChallengeBuildScreen
-            onAddScore={handleAddScore}
-            onComplete={() => setCurrentScreen('CODE_BRIDGE')}
-          />
-        )}
+            {currentScreen === 'CHALLENGE_ORDER' && (
+              <ChallengeOrderScreen
+                onAddScore={handleAddScore}
+                onComplete={() => setCurrentScreen('CHALLENGE_DEBUG')}
+              />
+            )}
 
-        {currentScreen === 'CODE_BRIDGE' && (
-          <CodeBridgeScreen onComplete={() => setCurrentScreen('SUMMARY')} />
-        )}
+            {currentScreen === 'CHALLENGE_DEBUG' && (
+              <ChallengeDebugScreen
+                onAddScore={handleAddScore}
+                onComplete={() => setCurrentScreen('CHALLENGE_ACCESS')}
+              />
+            )}
 
-        {currentScreen === 'SUMMARY' && (
-          <SummaryScreen
-            score={score}
-            onRestart={handleRestart}
-            onReview={handleReview}
-          />
+            {currentScreen === 'CHALLENGE_ACCESS' && (
+              <ChallengeAccessScreen
+                onAddScore={handleAddScore}
+                onComplete={() => setCurrentScreen('CHALLENGE_SECURITY')}
+              />
+            )}
+
+            {currentScreen === 'CHALLENGE_SECURITY' && (
+              <ChallengeSecurityScreen
+                onAddScore={handleAddScore}
+                onComplete={() => setCurrentScreen('CODE_BRIDGE')}
+              />
+            )}
+
+            {currentScreen === 'CODE_BRIDGE' && (
+              <CodeBridgeScreen onComplete={() => setCurrentScreen('SUMMARY')} />
+            )}
+
+            {currentScreen === 'SUMMARY' && (
+              <SummaryScreen
+                score={score}
+                onRestart={handleRestart}
+                onReview={handleReview}
+              />
+            )}
+          </>
         )}
       </main>
 
-      {/* Persistent Teacher Footer Navigation (unless on Hero) */}
-      <FooterNav
-        currentScreen={currentScreen}
-        onPrev={handlePrev}
-        onNext={handleNext}
-        canGoNext={true}
-        hideNext={currentScreen === 'HERO'}
-      />
+      {/* Persistent Navigation (when inside Lesson and not on Hero) */}
+      {viewMode === 'LESSON' && (
+        <FooterNav
+          currentScreen={currentScreen}
+          onPrev={handlePrev}
+          onNext={handleNext}
+          canGoNext={true}
+          hideNext={currentScreen === 'HERO'}
+        />
+      )}
     </div>
   )
 }

@@ -29,7 +29,7 @@ export const SummaryScreen: React.FC<SummaryScreenProps> = ({
       {/* Top Trophy Banner */}
       <div className="mb-4 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono font-bold shadow-[0_0_20px_rgba(245,158,11,0.2)]">
         <Trophy className="w-4 h-4 text-amber-400" />
-        <span>¡CLASE COMPLETADA EXITOSAMENTE!</span>
+        <span>¡EXPERIENCIA COMPLETADA CON ÉXITO!</span>
       </div>
 
       <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight mb-2">

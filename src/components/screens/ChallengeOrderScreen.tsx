@@ -310,7 +310,7 @@ export const ChallengeOrderScreen: React.FC<ChallengeOrderProps> = ({
               <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/40 text-emerald-300 animate-in fade-in duration-200">
                 <div className="flex items-center gap-2 font-extrabold text-sm mb-1 text-emerald-200">
                   <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-                  <span>¡Algoritmo correcto! (+10 pts)</span>
+                  <span>🟢 ¡Algoritmo correcto! (+10 pts)</span>
                 </div>
                 <p className="text-xs text-emerald-200/90 leading-relaxed mb-4">
                   El sistema cumplió la secuencia estricta: recibir el medio físico, leer la información, validarla en la base de datos y recién luego abrir la puerta.

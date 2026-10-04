@@ -7,9 +7,12 @@ export type ScreenId =
   | 'PAPER_FIRST'
   | 'CHALLENGE_ORDER'
   | 'CHALLENGE_DEBUG'
-  | 'CHALLENGE_BUILD'
+  | 'CHALLENGE_ACCESS'
+  | 'CHALLENGE_SECURITY'
   | 'CODE_BRIDGE'
   | 'SUMMARY'
+
+export type AppViewMode = 'LESSON' | 'LIVE_STUDENT' | 'LIVE_TEACHER'
 
 export interface ScreenMeta {
   id: ScreenId
@@ -27,7 +30,8 @@ export const SCREENS: ScreenMeta[] = [
   { id: 'PAPER_FIRST', title: 'Ahora te Toca a Vos', shortLabel: 'Sin Tecnología', phase: 'challenge' },
   { id: 'CHALLENGE_ORDER', title: 'Desafío 1: Ordenar', shortLabel: 'Desafío 1', phase: 'challenge' },
   { id: 'CHALLENGE_DEBUG', title: 'Desafío 2: Rompé el Programa', shortLabel: 'Desafío 2', phase: 'challenge' },
-  { id: 'CHALLENGE_BUILD', title: 'Desafío Final: Creá la Solución', shortLabel: 'Desafío Final', phase: 'challenge' },
+  { id: 'CHALLENGE_ACCESS', title: 'Desafío 3: Sistema de Acceso', shortLabel: 'Desafío 3', phase: 'challenge' },
+  { id: 'CHALLENGE_SECURITY', title: 'Desafío Final: Sistema de Seguridad', shortLabel: 'Desafío Final', phase: 'challenge' },
   { id: 'CODE_BRIDGE', title: '¿Y el Código?', shortLabel: 'Código Real', phase: 'code' },
   { id: 'SUMMARY', title: 'Resumen y Cierre', shortLabel: 'Resumen', phase: 'summary' },
 ]
@@ -49,3 +53,57 @@ export const CYCLE_STEPS: CycleStep[] = [
   { id: 6, icon: '🔧', name: 'CORREGIR', desc: 'Ajustar la instrucción defectuosa para reparar el flujo.', color: '#ec4899' },
   { id: 7, icon: '💻', name: 'PROGRAMAR', desc: 'Traducir el algoritmo validado al lenguaje de la máquina.', color: '#a855f7' },
 ]
+
+// ==========================================
+// Tipos para el DESAFÍO EN VIVO (Multijugador)
+// ==========================================
+
+export interface LiveCard {
+  id: string
+  label: string
+  category: 'action' | 'condition' | 'result'
+  icon?: string
+}
+
+export interface LiveTestCase {
+  id: string
+  description: string
+  inputs: Record<string, any>
+  expectedResult: 'PERMITIR' | 'RECHAZAR'
+}
+
+export interface LiveChallengeConfig {
+  id: string
+  title: string
+  description: string
+  mission: string
+  availableCards: LiveCard[]
+  testCases: LiveTestCase[]
+  validateSolution: (solution: any) => { isValid: boolean; message: string; failedTestIndex?: number }
+}
+
+export interface LiveParticipant {
+  id: string
+  firstName: string
+  lastName: string
+  status: 'JOINED' | 'SOLVING' | 'COMPLETED' | 'ERROR'
+  finishTimeFormatted?: string
+  finishTimeMs?: number
+  rank?: number
+  tries: number
+  lastMessage?: string
+}
+
+export type LiveSessionStatus = 'WAITING' | 'ACTIVE' | 'FINISHED'
+
+export interface LiveSessionState {
+  code: string
+  challengeId: string
+  challengeTitle: string
+  status: LiveSessionStatus
+  startedAt?: number
+  endedAt?: number
+  winnerName?: string
+  winnerTime?: string
+  participants: LiveParticipant[]
+}

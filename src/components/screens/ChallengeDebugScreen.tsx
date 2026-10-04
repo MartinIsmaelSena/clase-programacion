@@ -68,7 +68,7 @@ export const ChallengeDebugScreen: React.FC<ChallengeDebugProps> = ({
               Algoritmo en Ejecución
             </span>
             <span className="text-xs font-mono text-amber-400">
-              ¿Dónde está el problema?
+              ¿Dónde está el error?
             </span>
           </div>
 
@@ -227,7 +227,7 @@ export const ChallengeDebugScreen: React.FC<ChallengeDebugProps> = ({
               }}
               className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-slate-950 font-black text-sm shadow-[0_0_20px_rgba(6,182,212,0.3)] cursor-pointer transition-all"
             >
-              <span>IR AL DESAFÍO FINAL: CREÁ LA SOLUCIÓN</span>
+              <span>IR AL DESAFÍO 3: SISTEMA DE ACCESO</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           )}

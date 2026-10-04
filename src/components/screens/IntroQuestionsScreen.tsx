@@ -52,8 +52,8 @@ export const IntroQuestionsScreen: React.FC<IntroQuestionsScreenProps> = ({ onCo
               <h3 className="text-xl sm:text-2xl font-bold text-slate-100 leading-snug">
                 ¿Una computadora puede resolver un problema si no le explicamos exactamente qué hacer?
               </h3>
-              <p className="text-sm text-slate-400 pt-1">
-                Pausa docente: Escuchar las intuiciones iniciales del curso.
+              <p className="text-sm text-cyan-300/80 pt-1">
+                ¿Qué pensás al respecto? Tomate un momento para responderte mentalmente.
               </p>
             </div>
           </div>
@@ -71,7 +71,7 @@ export const IntroQuestionsScreen: React.FC<IntroQuestionsScreenProps> = ({ onCo
                   Profundización
                 </span>
                 <h3 className="text-xl sm:text-2xl font-bold text-slate-100 leading-snug">
-                  ¿Qué significa para vos <span className="text-indigo-400 font-black">"dar instrucciones"</span>?
+                  ¿Qué significa dar instrucciones?
                 </h3>
                 <p className="text-sm text-slate-400 pt-1">
                   ¿Es lo mismo darle una orden a una persona que a un procesador electrónico?
@@ -129,8 +129,8 @@ export const IntroQuestionsScreen: React.FC<IntroQuestionsScreenProps> = ({ onCo
       </div>
 
       <div className="mt-6 flex items-center gap-2 text-xs text-slate-500 font-mono">
-        <MessageSquareText className="w-3.5 h-3.5 text-slate-400" />
-        <span>Control docente: avanzar al ritmo de la exposición oral</span>
+        <MessageSquareText className="w-3.5 h-3.5 text-cyan-400/70" />
+        <span>Avanzá a tu propio ritmo para reflexionar sobre cada pregunta</span>
       </div>
     </div>
   )

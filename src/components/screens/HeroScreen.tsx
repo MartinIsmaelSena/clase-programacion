@@ -45,7 +45,7 @@ export const HeroScreen: React.FC<HeroScreenProps> = ({ onStart }) => {
         <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-cyan-500 via-indigo-500 to-pink-500" />
         <p className="text-xs font-mono uppercase tracking-widest text-cyan-400 font-semibold mb-2 flex items-center justify-center gap-1.5">
           <Sparkles className="w-3.5 h-3.5" />
-          Pregunta Guía de la Experiencia
+          Pregunta Disparadora
         </p>
         <blockquote className="text-xl sm:text-2xl font-semibold text-slate-100 italic leading-snug">
           “¿Cómo podemos transformar un problema en instrucciones que una computadora pueda ejecutar?”
@@ -60,13 +60,13 @@ export const HeroScreen: React.FC<HeroScreenProps> = ({ onStart }) => {
         }}
         className="group relative inline-flex items-center gap-3 px-8 py-4 rounded-xl bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 text-slate-950 font-extrabold text-lg tracking-wide hover:from-cyan-400 hover:to-indigo-500 shadow-[0_0_30px_rgba(6,182,212,0.4)] hover:shadow-[0_0_40px_rgba(6,182,212,0.6)] transform hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer"
       >
-        <span>COMENZAR EXPERIENCIA</span>
+        <span>COMENZAR</span>
         <ArrowRight className="w-5 h-5 text-slate-950 transition-transform group-hover:translate-x-1" />
       </button>
 
       {/* Sub note */}
       <p className="mt-6 text-xs text-slate-500 font-mono">
-        Pizarra didáctica interactiva • Controlada por el docente
+        Laboratorio interactivo de pensamiento computacional
       </p>
     </div>
   )

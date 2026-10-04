@@ -222,8 +222,8 @@ export const CycleDiagramScreen: React.FC<CycleDiagramScreenProps> = ({ onComple
               {activeStep.desc}
             </p>
 
-            <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 text-xs text-slate-400 font-mono">
-              💡 <span className="text-slate-300">Clave pedagógica:</span> El docente puede detenerse aquí y profundizar en cómo se aplica "{activeStep.name}".
+            <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 text-xs text-slate-300 font-mono">
+              💡 <span className="text-cyan-400 font-bold">Concepto clave:</span> Cada vez que aplicás "{activeStep.name}", fortalecés tu razonamiento antes de pasar al siguiente paso.
             </div>
           </div>
 

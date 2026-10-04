@@ -159,7 +159,7 @@ export const PrecisionConceptScreen: React.FC<PrecisionConceptProps> = ({
 
           <div className="mt-4 pt-3 border-t border-slate-800/80 text-center">
             <p className="text-xs text-slate-300 font-medium">
-              ✨ <span className="text-cyan-400 font-bold">Conclusión pedagógica:</span> Cada paso debe ser inequívoco y no dejar lugar a la improvisación.
+              ✨ <span className="text-cyan-400 font-bold">Regla fundamental:</span> Cada paso debe ser inequívoco y no dejar lugar a la improvisación.
             </p>
           </div>
         </div>

@@ -49,7 +49,7 @@ export const FooterNav: React.FC<FooterNavProps> = ({
         {/* Center note for teacher */}
         <div className="text-center hidden sm:block">
           <span className="text-[11px] font-mono text-slate-400">
-            Navegación controlada por el docente • Etapa {currentIndex + 1} de {SCREENS.length}
+            Navegación interactiva • Etapa {currentIndex + 1} de {SCREENS.length}
           </span>
         </div>
 

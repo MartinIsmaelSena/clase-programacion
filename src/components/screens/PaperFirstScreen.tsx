@@ -48,7 +48,7 @@ export const PaperFirstScreen: React.FC<PaperFirstScreenProps> = ({ onComplete }
       <div className="text-center mb-6">
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 mb-2">
           <PenTool className="w-3.5 h-3.5" />
-          Transición Pedagógica
+          El Camino Lógico
         </span>
         <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
           AHORA TE TOCA A VOS
@@ -93,15 +93,15 @@ export const PaperFirstScreen: React.FC<PaperFirstScreenProps> = ({ onComplete }
         ))}
       </div>
 
-      {/* Teacher Prompt Box */}
+      {/* Student Tip Box */}
       <div className="w-full max-w-2xl p-5 rounded-2xl bg-slate-900/80 border border-indigo-500/30 text-center mb-8 shadow-[0_0_25px_rgba(99,102,241,0.15)]">
         <p className="text-sm font-semibold text-indigo-300 mb-1">
-          📌 Consigna para el estudiante:
+          💡 Clave para resolver:
         </p>
         <p className="text-slate-200 text-sm leading-relaxed">
           En los siguientes desafíos, antes de mover cualquier tarjeta en pantalla, 
-          <span className="text-white font-bold"> imaginate la situación en tu cabeza</span> o anotala en tu cuaderno. 
-          ¡Descubrí la trampa lógica antes de probar!
+          <span className="text-white font-bold"> imaginate la situación en tu cabeza</span> o anotala en papel. 
+          ¡Descubrí la lógica antes de probar!
         </p>
       </div>
 
