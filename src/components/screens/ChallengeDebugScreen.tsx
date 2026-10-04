@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { sound } from '../../utils/sound'
-import { Bug, Search, Wrench, CheckCircle2, ArrowRight, AlertOctagon } from 'lucide-react'
+import { Bug, Search, Wrench, CheckCircle2, ArrowRight, AlertOctagon, RotateCcw } from 'lucide-react'
 import confetti from 'canvas-confetti'
 
 interface ChallengeDebugProps {
@@ -44,6 +44,13 @@ export const ChallengeDebugScreen: React.FC<ChallengeDebugProps> = ({
     setIsFixed(true)
   }
 
+  const handleReset = () => {
+    sound.playClick()
+    setSelectedStepId(null)
+    setIsBugFound(false)
+    setIsFixed(false)
+  }
+
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 max-w-4xl mx-auto w-full">
       {/* Title */}
@@ -67,9 +74,19 @@ export const ChallengeDebugScreen: React.FC<ChallengeDebugProps> = ({
             <span className="text-xs font-mono uppercase text-slate-400 font-bold">
               Algoritmo en Ejecución
             </span>
-            <span className="text-xs font-mono text-amber-400">
-              ¿Dónde está el error?
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-mono text-amber-400">
+                ¿Dónde está el error?
+              </span>
+              <button
+                onClick={handleReset}
+                className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                title="Reiniciar desafío"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>Reiniciar</span>
+              </button>
+            </div>
           </div>
 
           <div className="space-y-3">
@@ -195,6 +212,27 @@ export const ChallengeDebugScreen: React.FC<ChallengeDebugProps> = ({
                 </span>
               </div>
             </div>
+
+            {/* Diagnostic messages for incorrect steps */}
+            {!isBugFound && !isFixed && selectedStepId === 1 && (
+              <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs leading-relaxed animate-in fade-in duration-200">
+                <p className="font-bold text-sm text-amber-300 mb-1 flex items-center gap-1.5">
+                  <AlertOctagon className="w-4 h-4" />
+                  ℹ️ Paso 1 es correcto
+                </p>
+                El lector físico necesita recibir la tarjeta antes de leerla o verificarla. El error lógico está en otro paso de la secuencia.
+              </div>
+            )}
+
+            {!isBugFound && !isFixed && selectedStepId === 3 && (
+              <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs leading-relaxed animate-in fade-in duration-200">
+                <p className="font-bold text-sm text-amber-300 mb-1 flex items-center gap-1.5">
+                  <AlertOctagon className="w-4 h-4" />
+                  ⚠️ Paso 3 es necesario, pero mirá el orden
+                </p>
+                Verificar la tarjeta es una acción obligatoria, pero ¡se está ejecutando en el paso 3 después de haber permitido el acceso en el paso 2! El bug está en abrir la puerta antes de verificar.
+              </div>
+            )}
 
             {/* Found Message */}
             {isBugFound && !isFixed && (

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { sound } from '../../utils/sound'
-import { ShieldAlert, Play, CheckCircle2, XCircle, ArrowRight, GitFork, Users, Clock, CreditCard, RotateCcw } from 'lucide-react'
+import { ShieldAlert, Play, CheckCircle2, XCircle, ArrowRight, GitFork, Users, Clock, CreditCard, RotateCcw, AlertTriangle } from 'lucide-react'
 import confetti from 'canvas-confetti'
 
 interface ChallengeSecurityProps {
@@ -9,12 +9,12 @@ interface ChallengeSecurityProps {
 }
 
 interface TreeDecisions {
-  node1_no: 'RECHAZAR' | 'PERMITIR'
-  node1_si: 'HORARIO' | 'PERMITIR' | 'RECHAZAR'
-  node2_no: 'RECHAZAR' | 'PERMITIR'
-  node2_si: 'CAPACIDAD' | 'PERMITIR' | 'RECHAZAR'
-  node3_si_llena: 'RECHAZAR' | 'PERMITIR'
-  node3_no_llena: 'PERMITIR' | 'RECHAZAR'
+  node1_no: '' | 'RECHAZAR' | 'PERMITIR'
+  node1_si: '' | 'HORARIO' | 'PERMITIR' | 'RECHAZAR'
+  node2_no: '' | 'RECHAZAR' | 'PERMITIR'
+  node2_si: '' | 'CAPACIDAD' | 'PERMITIR' | 'RECHAZAR'
+  node3_si_llena: '' | 'RECHAZAR' | 'PERMITIR'
+  node3_no_llena: '' | 'PERMITIR' | 'RECHAZAR'
 }
 
 interface SecurityTestCase {
@@ -39,13 +39,14 @@ export const ChallengeSecurityScreen: React.FC<ChallengeSecurityProps> = ({
   onAddScore,
   onComplete,
 }) => {
+  // Decision tree built by student - starts completely empty
   const [decisions, setDecisions] = useState<TreeDecisions>({
-    node1_no: 'RECHAZAR',
-    node1_si: 'HORARIO',
-    node2_no: 'RECHAZAR',
-    node2_si: 'CAPACIDAD',
-    node3_si_llena: 'RECHAZAR',
-    node3_no_llena: 'PERMITIR',
+    node1_no: '',
+    node1_si: '',
+    node2_no: '',
+    node2_si: '',
+    node3_si_llena: '',
+    node3_no_llena: '',
   })
 
   const [testCases, setTestCases] = useState<SecurityTestCase[]>(INITIAL_SECURITY_TESTS)
@@ -54,34 +55,53 @@ export const ChallengeSecurityScreen: React.FC<ChallengeSecurityProps> = ({
   const [passedCount, setPassedCount] = useState<number>(0)
   const [allPassed, setAllPassed] = useState<boolean>(false)
   const [hasScored, setHasScored] = useState(false)
+  const [validationError, setValidationError] = useState<string | null>(null)
+  const [hasTested, setHasTested] = useState(false)
 
   // Trace through tree decisions
   const traceAlgorithm = (cardValid: boolean, scheduleValid: boolean, occupancy: number): 'PERMITIR' | 'RECHAZAR' => {
     // Node 1: Card
     if (!cardValid) {
-      return decisions.node1_no
+      return decisions.node1_no === 'PERMITIR' ? 'PERMITIR' : 'RECHAZAR'
     }
     if (decisions.node1_si === 'PERMITIR') return 'PERMITIR'
     if (decisions.node1_si === 'RECHAZAR') return 'RECHAZAR'
 
-    // Node 2: Schedule
+    // Node 2: Schedule (only if Node 1 passed to HORARIO)
     if (!scheduleValid) {
-      return decisions.node2_no
+      return decisions.node2_no === 'PERMITIR' ? 'PERMITIR' : 'RECHAZAR'
     }
     if (decisions.node2_si === 'PERMITIR') return 'PERMITIR'
     if (decisions.node2_si === 'RECHAZAR') return 'RECHAZAR'
 
-    // Node 3: Capacity
+    // Node 3: Capacity (only if Node 2 passed to CAPACIDAD)
     const isFull = occupancy >= 30
     if (isFull) {
-      return decisions.node3_si_llena
+      return decisions.node3_si_llena === 'PERMITIR' ? 'PERMITIR' : 'RECHAZAR'
     } else {
-      return decisions.node3_no_llena
+      return decisions.node3_no_llena === 'PERMITIR' ? 'PERMITIR' : 'RECHAZAR'
     }
   }
 
   const handleRunSecurityTests = () => {
     if (testing) return
+
+    // Require all 6 branch decisions to be made
+    if (
+      !decisions.node1_no ||
+      !decisions.node1_si ||
+      !decisions.node2_no ||
+      !decisions.node2_si ||
+      !decisions.node3_si_llena ||
+      !decisions.node3_no_llena
+    ) {
+      sound.playError()
+      setValidationError('Completá todas las opciones antes de comprobar el algoritmo.')
+      return
+    }
+
+    setValidationError(null)
+    setHasTested(true)
     setTesting(true)
     setActiveTestIdx(0)
     setPassedCount(0)
@@ -133,16 +153,18 @@ export const ChallengeSecurityScreen: React.FC<ChallengeSecurityProps> = ({
   const handleReset = () => {
     sound.playClick()
     setDecisions({
-      node1_no: 'PERMITIR',
-      node1_si: 'PERMITIR',
-      node2_no: 'PERMITIR',
-      node2_si: 'PERMITIR',
-      node3_si_llena: 'PERMITIR',
-      node3_no_llena: 'PERMITIR',
+      node1_no: '',
+      node1_si: '',
+      node2_no: '',
+      node2_si: '',
+      node3_si_llena: '',
+      node3_no_llena: '',
     })
     setTestCases(INITIAL_SECURITY_TESTS)
     setPassedCount(0)
     setAllPassed(false)
+    setValidationError(null)
+    setHasTested(false)
   }
 
   return (
@@ -191,34 +213,42 @@ export const ChallengeSecurityScreen: React.FC<ChallengeSecurityProps> = ({
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                 <div className="p-2 rounded bg-slate-900 border border-slate-800">
-                  <span className="text-slate-400 text-[11px] block mb-1">Ruta 🔴 NO:</span>
+                  <span className="text-slate-400 text-[11px] block mb-1">Ruta 🔴 NO (inválida):</span>
                   <select
                     value={decisions.node1_no}
                     onChange={(e) => {
                       sound.playClick()
                       setDecisions({ ...decisions, node1_no: e.target.value as any })
                       setAllPassed(false)
+                      setValidationError(null)
                     }}
-                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs cursor-pointer"
+                    className={`w-full bg-slate-950 border rounded px-2 py-1.5 text-xs cursor-pointer transition-colors ${
+                      !decisions.node1_no ? 'border-amber-500/50 text-amber-300/80 italic' : 'border-slate-700 text-slate-200'
+                    }`}
                   >
+                    <option value="">Seleccioná una opción...</option>
                     <option value="RECHAZAR">⛔ RECHAZAR</option>
                     <option value="PERMITIR">🚪 PERMITIR</option>
                   </select>
                 </div>
 
                 <div className="p-2 rounded bg-slate-900 border border-slate-800">
-                  <span className="text-slate-400 text-[11px] block mb-1">Ruta 🟢 SÍ:</span>
+                  <span className="text-slate-400 text-[11px] block mb-1">Ruta 🟢 SÍ (válida):</span>
                   <select
                     value={decisions.node1_si}
                     onChange={(e) => {
                       sound.playClick()
                       setDecisions({ ...decisions, node1_si: e.target.value as any })
                       setAllPassed(false)
+                      setValidationError(null)
                     }}
-                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs cursor-pointer"
+                    className={`w-full bg-slate-950 border rounded px-2 py-1.5 text-xs cursor-pointer transition-colors ${
+                      !decisions.node1_si ? 'border-amber-500/50 text-amber-300/80 italic' : 'border-slate-700 text-slate-200'
+                    }`}
                   >
+                    <option value="">Seleccioná una opción...</option>
                     <option value="HORARIO">⏰ Pasar a ¿Horario?</option>
                     <option value="PERMITIR">🚪 PERMITIR</option>
                     <option value="RECHAZAR">⛔ RECHAZAR</option>
@@ -241,34 +271,42 @@ export const ChallengeSecurityScreen: React.FC<ChallengeSecurityProps> = ({
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                 <div className="p-2 rounded bg-slate-900 border border-slate-800">
-                  <span className="text-slate-400 text-[11px] block mb-1">Ruta 🔴 NO:</span>
+                  <span className="text-slate-400 text-[11px] block mb-1">Ruta 🔴 NO (fuera de hora):</span>
                   <select
                     value={decisions.node2_no}
                     onChange={(e) => {
                       sound.playClick()
                       setDecisions({ ...decisions, node2_no: e.target.value as any })
                       setAllPassed(false)
+                      setValidationError(null)
                     }}
-                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs cursor-pointer"
+                    className={`w-full bg-slate-950 border rounded px-2 py-1.5 text-xs cursor-pointer transition-colors ${
+                      !decisions.node2_no ? 'border-amber-500/50 text-amber-300/80 italic' : 'border-slate-700 text-slate-200'
+                    }`}
                   >
+                    <option value="">Seleccioná una opción...</option>
                     <option value="RECHAZAR">⛔ RECHAZAR</option>
                     <option value="PERMITIR">🚪 PERMITIR</option>
                   </select>
                 </div>
 
                 <div className="p-2 rounded bg-slate-900 border border-slate-800">
-                  <span className="text-slate-400 text-[11px] block mb-1">Ruta 🟢 SÍ:</span>
+                  <span className="text-slate-400 text-[11px] block mb-1">Ruta 🟢 SÍ (en horario):</span>
                   <select
                     value={decisions.node2_si}
                     onChange={(e) => {
                       sound.playClick()
                       setDecisions({ ...decisions, node2_si: e.target.value as any })
                       setAllPassed(false)
+                      setValidationError(null)
                     }}
-                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs cursor-pointer"
+                    className={`w-full bg-slate-950 border rounded px-2 py-1.5 text-xs cursor-pointer transition-colors ${
+                      !decisions.node2_si ? 'border-amber-500/50 text-amber-300/80 italic' : 'border-slate-700 text-slate-200'
+                    }`}
                   >
+                    <option value="">Seleccioná una opción...</option>
                     <option value="CAPACIDAD">👥 Pasar a ¿Sala Llena?</option>
                     <option value="PERMITIR">🚪 PERMITIR</option>
                     <option value="RECHAZAR">⛔ RECHAZAR</option>
@@ -291,34 +329,42 @@ export const ChallengeSecurityScreen: React.FC<ChallengeSecurityProps> = ({
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                 <div className="p-2 rounded bg-slate-900 border border-slate-800">
-                  <span className="text-slate-400 text-[11px] block mb-1">Ruta ⚠️ SÍ (Está llena):</span>
+                  <span className="text-slate-400 text-[11px] block mb-1">Ruta ⚠️ SÍ (está llena):</span>
                   <select
                     value={decisions.node3_si_llena}
                     onChange={(e) => {
                       sound.playClick()
                       setDecisions({ ...decisions, node3_si_llena: e.target.value as any })
                       setAllPassed(false)
+                      setValidationError(null)
                     }}
-                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs cursor-pointer"
+                    className={`w-full bg-slate-950 border rounded px-2 py-1.5 text-xs cursor-pointer transition-colors ${
+                      !decisions.node3_si_llena ? 'border-amber-500/50 text-amber-300/80 italic' : 'border-slate-700 text-slate-200'
+                    }`}
                   >
+                    <option value="">Seleccioná una opción...</option>
                     <option value="RECHAZAR">⛔ RECHAZAR</option>
                     <option value="PERMITIR">🚪 PERMITIR</option>
                   </select>
                 </div>
 
                 <div className="p-2 rounded bg-slate-900 border border-slate-800">
-                  <span className="text-slate-400 text-[11px] block mb-1">Ruta 🟢 NO (Hay espacio):</span>
+                  <span className="text-slate-400 text-[11px] block mb-1">Ruta 🟢 NO (hay espacio):</span>
                   <select
                     value={decisions.node3_no_llena}
                     onChange={(e) => {
                       sound.playClick()
                       setDecisions({ ...decisions, node3_no_llena: e.target.value as any })
                       setAllPassed(false)
+                      setValidationError(null)
                     }}
-                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs cursor-pointer"
+                    className={`w-full bg-slate-950 border rounded px-2 py-1.5 text-xs cursor-pointer transition-colors ${
+                      !decisions.node3_no_llena ? 'border-amber-500/50 text-amber-300/80 italic' : 'border-slate-700 text-slate-200'
+                    }`}
                   >
+                    <option value="">Seleccioná una opción...</option>
                     <option value="PERMITIR">🚪 PERMITIR</option>
                     <option value="RECHAZAR">⛔ RECHAZAR</option>
                   </select>
@@ -326,6 +372,14 @@ export const ChallengeSecurityScreen: React.FC<ChallengeSecurityProps> = ({
               </div>
             </div>
           </div>
+
+          {/* Validation warning when incomplete */}
+          {validationError && (
+            <div className="mt-3 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center gap-2 animate-in fade-in">
+              <AlertTriangle className="w-4 h-4 shrink-0 text-amber-400" />
+              <span>{validationError}</span>
+            </div>
+          )}
 
           <div className="mt-4 pt-3 border-t border-slate-800 flex justify-end">
             <button
@@ -399,9 +453,31 @@ export const ChallengeSecurityScreen: React.FC<ChallengeSecurityProps> = ({
             </div>
           )}
 
-          {!allPassed && passedCount > 0 && !testing && (
-            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs animate-in fade-in mb-3">
-              ⚠️ Una de las reglas de seguridad no se cumplió. Asegurate de que el aforo rechace cuando la sala está llena.
+          {!allPassed && hasTested && !testing && activeTestIdx === -1 && (
+            <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs animate-in fade-in mb-3">
+              <p className="font-bold text-rose-200 mb-1 flex items-center gap-1.5">
+                <XCircle className="w-4 h-4 text-rose-400" />
+                Diagnóstico del Sistema de Seguridad:
+              </p>
+              {decisions.node1_no === 'PERMITIR' ? (
+                <span>❌ Falla en Caso 1: Se permitió el acceso a una credencial no registrada en el sistema.</span>
+              ) : decisions.node1_si === 'PERMITIR' ? (
+                <span>❌ Falla de seguridad: Al permitir el acceso en el Nodo 1 sin verificar Horario ni Capacidad, la puerta se abre a cualquier hora o con sala llena.</span>
+              ) : decisions.node1_si === 'RECHAZAR' ? (
+                <span>❌ Error de acceso: Rechazaste a todos los alumnos autorizados con tarjeta válida.</span>
+              ) : decisions.node2_no === 'PERMITIR' ? (
+                <span>❌ Falla en Caso 2: Se permitió el ingreso a las 21:30 fuera del horario escolar.</span>
+              ) : decisions.node2_si === 'PERMITIR' ? (
+                <span>❌ Falla de seguridad: Al permitir el acceso en el Nodo 2 sin verificar la capacidad, la sala superó el aforo de 30 personas.</span>
+              ) : decisions.node2_si === 'RECHAZAR' ? (
+                <span>❌ Error de acceso: Rechazaste a los alumnos en horario escolar permitido.</span>
+              ) : decisions.node3_si_llena === 'PERMITIR' ? (
+                <span>❌ Falla en Caso 3: Se permitió el acceso con la sala llena al tope de 30 personas.</span>
+              ) : decisions.node3_no_llena === 'RECHAZAR' ? (
+                <span>❌ Error en Caso 4: Rechazaste a un alumno con credencial válida, horario correcto y habiendo espacio en la sala.</span>
+              ) : (
+                <span>⚠️ Una de las reglas de seguridad no se cumplió. Revisá cada bifurcación del árbol de decisiones.</span>
+              )}
             </div>
           )}
         </div>

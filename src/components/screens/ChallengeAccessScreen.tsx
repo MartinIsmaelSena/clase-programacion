@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { sound } from '../../utils/sound'
-import { ShieldCheck, Play, CheckCircle2, XCircle, ArrowRight, Clock, CreditCard, RotateCcw } from 'lucide-react'
+import { ShieldCheck, Play, CheckCircle2, XCircle, ArrowRight, Clock, CreditCard, RotateCcw, AlertTriangle } from 'lucide-react'
 import confetti from 'canvas-confetti'
 
 interface ChallengeAccessProps {
@@ -9,10 +9,10 @@ interface ChallengeAccessProps {
 }
 
 interface AccessRuleConfig {
-  validCardAction: 'PERMITIR' | 'EVALUAR_HORARIO' | 'RECHAZAR'
-  invalidCardAction: 'PERMITIR' | 'RECHAZAR'
-  validScheduleAction: 'PERMITIR' | 'RECHAZAR'
-  invalidScheduleAction: 'PERMITIR' | 'RECHAZAR'
+  validCardAction: '' | 'EVALUAR_HORARIO' | 'PERMITIR' | 'RECHAZAR'
+  invalidCardAction: '' | 'RECHAZAR' | 'PERMITIR'
+  validScheduleAction: '' | 'PERMITIR' | 'RECHAZAR'
+  invalidScheduleAction: '' | 'RECHAZAR' | 'PERMITIR'
 }
 
 interface TestCase {
@@ -37,12 +37,12 @@ export const ChallengeAccessScreen: React.FC<ChallengeAccessProps> = ({
   onAddScore,
   onComplete,
 }) => {
-  // Decision configuration built by student
+  // Decision configuration built by student - starts completely empty
   const [config, setConfig] = useState<AccessRuleConfig>({
-    validCardAction: 'EVALUAR_HORARIO',
-    invalidCardAction: 'RECHAZAR',
-    validScheduleAction: 'PERMITIR',
-    invalidScheduleAction: 'RECHAZAR',
+    validCardAction: '',
+    invalidCardAction: '',
+    validScheduleAction: '',
+    invalidScheduleAction: '',
   })
 
   const [testCases, setTestCases] = useState<TestCase[]>(INITIAL_TEST_CASES)
@@ -51,6 +51,8 @@ export const ChallengeAccessScreen: React.FC<ChallengeAccessProps> = ({
   const [passedCount, setPassedCount] = useState<number>(0)
   const [allPassed, setAllPassed] = useState<boolean>(false)
   const [hasScored, setHasScored] = useState(false)
+  const [validationError, setValidationError] = useState<string | null>(null)
+  const [hasTested, setHasTested] = useState(false)
 
   // Evaluation logic according to student's rule configuration
   const evaluateInput = (isCardValid: boolean, isTimeValid: boolean): 'Permitir' | 'Rechazar' => {
@@ -58,7 +60,7 @@ export const ChallengeAccessScreen: React.FC<ChallengeAccessProps> = ({
       return config.invalidCardAction === 'PERMITIR' ? 'Permitir' : 'Rechazar'
     }
 
-    // Card is valid
+    // Card is valid: check if student allowed immediately or passed to schedule
     if (config.validCardAction === 'PERMITIR') {
       return 'Permitir'
     }
@@ -66,7 +68,7 @@ export const ChallengeAccessScreen: React.FC<ChallengeAccessProps> = ({
       return 'Rechazar'
     }
 
-    // Evaluates schedule
+    // Evaluates schedule (only when validCardAction === 'EVALUAR_HORARIO')
     if (isTimeValid) {
       return config.validScheduleAction === 'PERMITIR' ? 'Permitir' : 'Rechazar'
     } else {
@@ -76,6 +78,21 @@ export const ChallengeAccessScreen: React.FC<ChallengeAccessProps> = ({
 
   const handleRunTests = () => {
     if (testing) return
+
+    // Require all 4 conditions to be chosen before testing
+    if (
+      !config.validCardAction ||
+      !config.invalidCardAction ||
+      !config.validScheduleAction ||
+      !config.invalidScheduleAction
+    ) {
+      sound.playError()
+      setValidationError('Completá todas las opciones antes de comprobar el algoritmo.')
+      return
+    }
+
+    setValidationError(null)
+    setHasTested(true)
     setTesting(true)
     setCurrentTestIdx(0)
     setPassedCount(0)
@@ -134,14 +151,16 @@ export const ChallengeAccessScreen: React.FC<ChallengeAccessProps> = ({
   const handleResetConfig = () => {
     sound.playClick()
     setConfig({
-      validCardAction: 'PERMITIR',
-      invalidCardAction: 'PERMITIR',
-      validScheduleAction: 'PERMITIR',
-      invalidScheduleAction: 'PERMITIR',
+      validCardAction: '',
+      invalidCardAction: '',
+      validScheduleAction: '',
+      invalidScheduleAction: '',
     })
     setTestCases(INITIAL_TEST_CASES)
     setPassedCount(0)
     setAllPassed(false)
+    setValidationError(null)
+    setHasTested(false)
   }
 
   return (
@@ -156,7 +175,7 @@ export const ChallengeAccessScreen: React.FC<ChallengeAccessProps> = ({
           DESAFÍO 3: Sistema de Acceso
         </h2>
         <p className="text-slate-300 text-sm max-w-xl mx-auto mt-1">
-          Un algoritmo debe tomar decisiones combinando dos condiciones independientes: <span className="text-cyan-400 font-bold">tarjeta válida</span> y <span className="text-indigo-400 font-bold">horario permitido</span>.
+          Un algoritmo debe tomar decisiones combinando dos condiciones independientes: <span className="text-cyan-400 font-bold">tarjeta válida</span> y <span className="text-indigo-400 font-bold">horario escolar (08:00 a 18:00)</span>.
         </p>
       </div>
 
@@ -179,13 +198,18 @@ export const ChallengeAccessScreen: React.FC<ChallengeAccessProps> = ({
           <div className="space-y-4">
             {/* Condition 1: Card validity */}
             <div className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-2.5">
-              <div className="flex items-center gap-2 text-cyan-400 text-xs font-mono font-bold">
-                <CreditCard className="w-4 h-4" />
-                <span>Condición 1: ¿La tarjeta es válida?</span>
+              <div className="flex items-center justify-between text-cyan-400 text-xs font-mono font-bold">
+                <div className="flex items-center gap-2">
+                  <CreditCard className="w-4 h-4" />
+                  <span>Paso 1: ¿La tarjeta es válida?</span>
+                </div>
+                <span className="text-[10px] px-2 py-0.5 rounded bg-cyan-950 text-cyan-300">
+                  Condición Inicial
+                </span>
               </div>
 
-              <div className="space-y-2 pl-2 border-l-2 border-cyan-500/30 text-xs">
-                <div className="flex items-center justify-between gap-2">
+              <div className="space-y-2.5 pl-2 border-l-2 border-cyan-500/30 text-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
                   <span className="text-slate-300">Si es <strong className="text-emerald-400">VÁLIDA</strong>:</span>
                   <select
                     value={config.validCardAction}
@@ -193,16 +217,22 @@ export const ChallengeAccessScreen: React.FC<ChallengeAccessProps> = ({
                       sound.playClick()
                       setConfig({ ...config, validCardAction: e.target.value as any })
                       setAllPassed(false)
+                      setValidationError(null)
                     }}
-                    className="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-slate-200 text-xs font-semibold cursor-pointer"
+                    className={`bg-slate-900 border rounded-lg px-2.5 py-1 text-xs font-semibold cursor-pointer transition-colors ${
+                      !config.validCardAction
+                        ? 'border-amber-500/50 text-amber-300/80 italic'
+                        : 'border-slate-700 text-slate-200'
+                    }`}
                   >
-                    <option value="EVALUAR_HORARIO">Evaluar Horario ➔</option>
-                    <option value="PERMITIR">Permitir Acceso</option>
-                    <option value="RECHAZAR">Rechazar Acceso</option>
+                    <option value="">Seleccioná una opción...</option>
+                    <option value="EVALUAR_HORARIO">⏰ Evaluar Horario ➔</option>
+                    <option value="PERMITIR">🚪 Permitir Acceso de inmediato</option>
+                    <option value="RECHAZAR">⛔ Rechazar Acceso</option>
                   </select>
                 </div>
 
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
                   <span className="text-slate-300">Si es <strong className="text-rose-400">INVÁLIDA</strong>:</span>
                   <select
                     value={config.invalidCardAction}
@@ -210,11 +240,17 @@ export const ChallengeAccessScreen: React.FC<ChallengeAccessProps> = ({
                       sound.playClick()
                       setConfig({ ...config, invalidCardAction: e.target.value as any })
                       setAllPassed(false)
+                      setValidationError(null)
                     }}
-                    className="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-slate-200 text-xs font-semibold cursor-pointer"
+                    className={`bg-slate-900 border rounded-lg px-2.5 py-1 text-xs font-semibold cursor-pointer transition-colors ${
+                      !config.invalidCardAction
+                        ? 'border-amber-500/50 text-amber-300/80 italic'
+                        : 'border-slate-700 text-slate-200'
+                    }`}
                   >
-                    <option value="RECHAZAR">Rechazar Acceso</option>
-                    <option value="PERMITIR">Permitir Acceso</option>
+                    <option value="">Seleccioná una opción...</option>
+                    <option value="RECHAZAR">⛔ Rechazar Acceso</option>
+                    <option value="PERMITIR">🚪 Permitir Acceso</option>
                   </select>
                 </div>
               </div>
@@ -222,13 +258,21 @@ export const ChallengeAccessScreen: React.FC<ChallengeAccessProps> = ({
 
             {/* Condition 2: Schedule */}
             <div className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-2.5">
-              <div className="flex items-center gap-2 text-indigo-400 text-xs font-mono font-bold">
-                <Clock className="w-4 h-4" />
-                <span>Condición 2: ¿Está dentro del horario escolar (08:00 a 18:00)?</span>
+              <div className="flex items-center justify-between text-indigo-400 text-xs font-mono font-bold">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  <span>Paso 2: ¿Horario escolar permitido (08:00 a 18:00)?</span>
+                </div>
+                <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-950 text-indigo-300">
+                  Segunda Verificación
+                </span>
               </div>
+              <p className="text-[11px] text-slate-400 italic">
+                (Este paso se ejecuta cuando la tarjeta fue validada correctamente)
+              </p>
 
-              <div className="space-y-2 pl-2 border-l-2 border-indigo-500/30 text-xs">
-                <div className="flex items-center justify-between gap-2">
+              <div className="space-y-2.5 pl-2 border-l-2 border-indigo-500/30 text-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
                   <span className="text-slate-300">Si el horario es <strong className="text-emerald-400">CORRECTO</strong>:</span>
                   <select
                     value={config.validScheduleAction}
@@ -236,15 +280,21 @@ export const ChallengeAccessScreen: React.FC<ChallengeAccessProps> = ({
                       sound.playClick()
                       setConfig({ ...config, validScheduleAction: e.target.value as any })
                       setAllPassed(false)
+                      setValidationError(null)
                     }}
-                    className="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-slate-200 text-xs font-semibold cursor-pointer"
+                    className={`bg-slate-900 border rounded-lg px-2.5 py-1 text-xs font-semibold cursor-pointer transition-colors ${
+                      !config.validScheduleAction
+                        ? 'border-amber-500/50 text-amber-300/80 italic'
+                        : 'border-slate-700 text-slate-200'
+                    }`}
                   >
-                    <option value="PERMITIR">Permitir Acceso</option>
-                    <option value="RECHAZAR">Rechazar Acceso</option>
+                    <option value="">Seleccioná una opción...</option>
+                    <option value="PERMITIR">🚪 Permitir Acceso</option>
+                    <option value="RECHAZAR">⛔ Rechazar Acceso</option>
                   </select>
                 </div>
 
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
                   <span className="text-slate-300">Si el horario es <strong className="text-rose-400">INCORRECTO</strong>:</span>
                   <select
                     value={config.invalidScheduleAction}
@@ -252,16 +302,30 @@ export const ChallengeAccessScreen: React.FC<ChallengeAccessProps> = ({
                       sound.playClick()
                       setConfig({ ...config, invalidScheduleAction: e.target.value as any })
                       setAllPassed(false)
+                      setValidationError(null)
                     }}
-                    className="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-slate-200 text-xs font-semibold cursor-pointer"
+                    className={`bg-slate-900 border rounded-lg px-2.5 py-1 text-xs font-semibold cursor-pointer transition-colors ${
+                      !config.invalidScheduleAction
+                        ? 'border-amber-500/50 text-amber-300/80 italic'
+                        : 'border-slate-700 text-slate-200'
+                    }`}
                   >
-                    <option value="RECHAZAR">Rechazar Acceso</option>
-                    <option value="PERMITIR">Permitir Acceso</option>
+                    <option value="">Seleccioná una opción...</option>
+                    <option value="RECHAZAR">⛔ Rechazar Acceso</option>
+                    <option value="PERMITIR">🚪 Permitir Acceso</option>
                   </select>
                 </div>
               </div>
             </div>
           </div>
+
+          {/* Validation warning when unselected */}
+          {validationError && (
+            <div className="mt-3 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center gap-2 animate-in fade-in">
+              <AlertTriangle className="w-4 h-4 shrink-0 text-amber-400" />
+              <span>{validationError}</span>
+            </div>
+          )}
 
           <div className="mt-4 pt-3 border-t border-slate-800 flex justify-end">
             <button
@@ -361,9 +425,37 @@ export const ChallengeAccessScreen: React.FC<ChallengeAccessProps> = ({
             </div>
           )}
 
-          {!allPassed && passedCount > 0 && !testing && (
-            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs animate-in fade-in mb-3">
-              ❌ Algunas pruebas fallaron. Revisá qué acción toma el sistema cuando la tarjeta es inválida o el horario no corresponde.
+          {!allPassed && hasTested && !testing && currentTestIdx === -1 && (
+            <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs animate-in fade-in mb-3">
+              <p className="font-bold text-rose-200 mb-1 flex items-center gap-1.5">
+                <XCircle className="w-4 h-4 text-rose-400" />
+                Diagnóstico del Algoritmo:
+              </p>
+              {config.validCardAction === 'PERMITIR' ? (
+                <span>
+                  ❌ Al seleccionar <strong>"Permitir Acceso de inmediato"</strong> en la Condición 1, el sistema abre la puerta sin evaluar el horario. Por eso alguien con tarjeta válida pudo ingresar a las 20:00 (Caso 3). Para que ambas condiciones se cumplan, si la tarjeta es válida se debe pasar a <strong>evaluar el horario</strong>.
+                </span>
+              ) : config.validCardAction === 'RECHAZAR' ? (
+                <span>
+                  ❌ Rechazaste las tarjetas válidas de entrada. Ningún estudiante autorizado podrá acceder a la escuela.
+                </span>
+              ) : config.invalidCardAction === 'PERMITIR' ? (
+                <span>
+                  ❌ Falla de seguridad: Se permitió el acceso a una credencial inválida (Caso 2). Si la tarjeta no es válida, debe rechazarse de inmediato.
+                </span>
+              ) : config.invalidScheduleAction === 'PERMITIR' ? (
+                <span>
+                  ❌ Falla de seguridad: Se permitió ingresar a las 20:00 fuera del horario escolar (Caso 3).
+                </span>
+              ) : config.validScheduleAction === 'RECHAZAR' ? (
+                <span>
+                  ❌ Error de acceso: Rechazaste a un alumno con tarjeta válida que llegó a las 10:00 en horario correcto (Caso 1).
+                </span>
+              ) : (
+                <span>
+                  ❌ Algunas pruebas fallaron. Revisá qué acción toma el sistema cuando la tarjeta es inválida o el horario no corresponde.
+                </span>
+              )}
             </div>
           )}
         </div>
